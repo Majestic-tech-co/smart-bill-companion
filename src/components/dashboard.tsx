@@ -258,7 +258,8 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
       </div>
 
       <div className="card-surface p-4 sm:p-5 h-fit">
-        <h2 className="font-semibold mb-3">Add a bill</h2>
+        <h2 className="font-semibold mb-1">Add a bill</h2>
+        <p className="text-xs text-muted-foreground mb-3">Bills repeat automatically on the same day every month.</p>
         <div className="space-y-3">
           <div>
             <Label htmlFor="bn" className="text-xs">Name</Label>
@@ -270,12 +271,20 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
               <Input id="ba" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
             </div>
             <div>
-              <Label htmlFor="bd" className="text-xs">Due day</Label>
+              <Label htmlFor="bd" className="text-xs">Day of month</Label>
               <Input id="bd" type="number" min={1} max={31} value={dueDay} onChange={(e) => setDueDay(e.target.value)} placeholder="15" />
             </div>
           </div>
+          <div className="flex items-center gap-2 rounded-md bg-secondary/50 border border-border/60 px-3 py-2">
+            <CalIcon className="h-3.5 w-3.5 text-primary shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              {dueDay && Number(dueDay) >= 1 && Number(dueDay) <= 31
+                ? <>Recurs on day <span className="text-foreground font-medium">{Number(dueDay)}</span> of every month.</>
+                : "Pick a day (1–31) to repeat monthly."}
+            </p>
+          </div>
           <Button onClick={add} className="w-full font-semibold" style={{ background: "var(--gradient-primary)", color: "var(--primary-foreground)" }}>
-            <Plus className="h-4 w-4 mr-1" /> Add bill
+            <Plus className="h-4 w-4 mr-1" /> Add recurring bill
           </Button>
           <p className="text-xs text-muted-foreground">Tap the status pill to cycle Pending → Paid → Overdue.</p>
         </div>
