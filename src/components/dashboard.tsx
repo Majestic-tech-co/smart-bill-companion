@@ -17,6 +17,7 @@ import {
   currency,
   currencyPrecise,
   monthlyCost,
+  amountInMonth,
   nextOccurrence,
   occurrencesInMonth,
   uid,
@@ -45,7 +46,14 @@ export function Dashboard() {
   const [subs, setSubs] = useLocalStorage<Subscription[]>("sbs.subs", defaultSubs);
   const [savingsRatePref, setSavingsRatePref] = useLocalStorage<number>("sbs.rate", 20);
 
-  const totalBills = useMemo(() => bills.reduce((s, b) => s + monthlyCost(b), 0), [bills]);
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth();
+
+  const totalBills = useMemo(
+    () => bills.reduce((s, b) => s + amountInMonth(b, curYear, curMonth), 0),
+    [bills, curYear, curMonth],
+  );
   const totalVariable = useMemo(() => variables.reduce((s, v) => s + v.amount, 0), [variables]);
   const totalSubs = useMemo(() => subs.reduce((s, b) => s + b.amount, 0), [subs]);
   const potentialSavings = useMemo(
@@ -54,8 +62,8 @@ export function Dashboard() {
   );
 
   const paidTotal = useMemo(
-    () => bills.filter((b) => b.status === "paid").reduce((s, b) => s + monthlyCost(b), 0),
-    [bills],
+    () => bills.filter((b) => b.status === "paid").reduce((s, b) => s + amountInMonth(b, curYear, curMonth), 0),
+    [bills, curYear, curMonth],
   );
   const paidPct = totalBills > 0 ? (paidTotal / totalBills) * 100 : 0;
 
@@ -265,7 +273,10 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
                     <p className="font-medium truncate">{b.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {b.frequency === "biweekly"
-                        ? <>Every 2 weeks · {currencyPrecise(b.amount)} · ≈ {currencyPrecise(monthlyCost(b))}/mo</>
+                        ? (() => {
+                            const n = occurrencesInMonth(b, new Date().getFullYear(), new Date().getMonth()).length;
+                            return <>Every 2 weeks · {currencyPrecise(b.amount)} × {n} this month = {currencyPrecise(b.amount * n)}</>;
+                          })()
                         : <>Due day {b.dueDay} · {currencyPrecise(b.amount)}</>}
                     </p>
                   </div>

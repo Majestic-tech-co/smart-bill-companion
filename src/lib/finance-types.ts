@@ -52,6 +52,12 @@ export function monthlyCost(b: Bill): number {
   return b.amount;
 }
 
+// Actual amount charged for this bill in a given month
+export function amountInMonth(b: Bill, year: number, month: number): number {
+  return occurrencesInMonth(b, year, month).length * b.amount;
+}
+
+
 function parseISODate(s: string): Date {
   const [y, m, d] = s.split("-").map(Number);
   return new Date(y, (m ?? 1) - 1, d ?? 1);
