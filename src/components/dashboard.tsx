@@ -200,16 +200,36 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [dueDay, setDueDay] = useState("");
+  const [frequency, setFrequency] = useState<BillFrequency>("monthly");
+  const [anchorDate, setAnchorDate] = useState("");
 
   const add = () => {
     const amt = parseFloat(amount);
-    const day = parseInt(dueDay, 10);
-    if (!name.trim() || !Number.isFinite(amt) || amt <= 0 || !Number.isFinite(day) || day < 1 || day > 31) return;
-    const bill: Bill = { id: uid(), name: name.trim(), amount: amt, dueDay: day, status: billStatusFromDueDay(day, "pending") };
-    setBills([...bills, bill]);
+    if (!name.trim() || !Number.isFinite(amt) || amt <= 0) return;
+    if (frequency === "monthly") {
+      const day = parseInt(dueDay, 10);
+      if (!Number.isFinite(day) || day < 1 || day > 31) return;
+      const bill: Bill = { id: uid(), name: name.trim(), amount: amt, dueDay: day, status: billStatusFromDueDay(day, "pending"), frequency: "monthly" };
+      setBills([...bills, bill]);
+    } else {
+      if (!anchorDate) return;
+      const d = new Date(anchorDate);
+      if (Number.isNaN(d.getTime())) return;
+      const bill: Bill = {
+        id: uid(),
+        name: name.trim(),
+        amount: amt,
+        dueDay: d.getDate(),
+        status: "pending",
+        frequency: "biweekly",
+        anchorDate,
+      };
+      setBills([...bills, bill]);
+    }
     setName("");
     setAmount("");
     setDueDay("");
+    setAnchorDate("");
   };
 
   const cycleStatus = (id: string) => {
@@ -225,6 +245,7 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
   const remove = (id: string) => setBills(bills.filter((b) => b.id !== id));
 
   const sorted = [...bills].sort((a, b) => a.dueDay - b.dueDay);
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
