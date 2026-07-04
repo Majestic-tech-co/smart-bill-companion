@@ -46,7 +46,14 @@ export function Dashboard() {
   const [subs, setSubs] = useLocalStorage<Subscription[]>("sbs.subs", defaultSubs);
   const [savingsRatePref, setSavingsRatePref] = useLocalStorage<number>("sbs.rate", 20);
 
-  const totalBills = useMemo(() => bills.reduce((s, b) => s + monthlyCost(b), 0), [bills]);
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth();
+
+  const totalBills = useMemo(
+    () => bills.reduce((s, b) => s + amountInMonth(b, curYear, curMonth), 0),
+    [bills, curYear, curMonth],
+  );
   const totalVariable = useMemo(() => variables.reduce((s, v) => s + v.amount, 0), [variables]);
   const totalSubs = useMemo(() => subs.reduce((s, b) => s + b.amount, 0), [subs]);
   const potentialSavings = useMemo(
@@ -55,8 +62,8 @@ export function Dashboard() {
   );
 
   const paidTotal = useMemo(
-    () => bills.filter((b) => b.status === "paid").reduce((s, b) => s + monthlyCost(b), 0),
-    [bills],
+    () => bills.filter((b) => b.status === "paid").reduce((s, b) => s + amountInMonth(b, curYear, curMonth), 0),
+    [bills, curYear, curMonth],
   );
   const paidPct = totalBills > 0 ? (paidTotal / totalBills) * 100 : 0;
 
