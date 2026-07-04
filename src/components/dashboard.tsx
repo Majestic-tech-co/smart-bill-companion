@@ -273,7 +273,10 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
                     <p className="font-medium truncate">{b.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {b.frequency === "biweekly"
-                        ? <>Every 2 weeks · {currencyPrecise(b.amount)} · ≈ {currencyPrecise(monthlyCost(b))}/mo</>
+                        ? (() => {
+                            const n = occurrencesInMonth(b, new Date().getFullYear(), new Date().getMonth()).length;
+                            return <>Every 2 weeks · {currencyPrecise(b.amount)} × {n} this month = {currencyPrecise(b.amount * n)}</>;
+                          })()
                         : <>Due day {b.dueDay} · {currencyPrecise(b.amount)}</>}
                     </p>
                   </div>
