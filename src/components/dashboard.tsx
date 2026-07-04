@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, Clock, AlertTriangle, Wallet, Target, TrendingUp, Calendar as CalIcon, Sparkles, ArrowRight, X } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, Clock, AlertTriangle, Wallet, Target, TrendingUp, Calendar as CalIcon, Sparkles, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,12 +9,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   type Bill,
+  type BillFrequency,
   type BillStatus,
   type Subscription,
   type VariableExpense,
   billStatusFromDueDay,
   currency,
   currencyPrecise,
+  monthlyCost,
+  nextOccurrence,
+  occurrencesInMonth,
   uid,
 } from "@/lib/finance-types";
 import { cn } from "@/lib/utils";
