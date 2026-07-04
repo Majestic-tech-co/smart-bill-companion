@@ -45,7 +45,7 @@ export function Dashboard() {
   const [subs, setSubs] = useLocalStorage<Subscription[]>("sbs.subs", defaultSubs);
   const [savingsRatePref, setSavingsRatePref] = useLocalStorage<number>("sbs.rate", 20);
 
-  const totalBills = useMemo(() => bills.reduce((s, b) => s + b.amount, 0), [bills]);
+  const totalBills = useMemo(() => bills.reduce((s, b) => s + monthlyCost(b), 0), [bills]);
   const totalVariable = useMemo(() => variables.reduce((s, v) => s + v.amount, 0), [variables]);
   const totalSubs = useMemo(() => subs.reduce((s, b) => s + b.amount, 0), [subs]);
   const potentialSavings = useMemo(
