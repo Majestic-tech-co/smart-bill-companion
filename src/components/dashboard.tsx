@@ -54,7 +54,7 @@ export function Dashboard() {
   );
 
   const paidTotal = useMemo(
-    () => bills.filter((b) => b.status === "paid").reduce((s, b) => s + b.amount, 0),
+    () => bills.filter((b) => b.status === "paid").reduce((s, b) => s + monthlyCost(b), 0),
     [bills],
   );
   const paidPct = totalBills > 0 ? (paidTotal / totalBills) * 100 : 0;
