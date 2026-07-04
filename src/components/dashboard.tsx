@@ -17,6 +17,7 @@ import {
   currency,
   currencyPrecise,
   monthlyCost,
+  amountInMonth,
   nextOccurrence,
   occurrencesInMonth,
   uid,
