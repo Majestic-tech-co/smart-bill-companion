@@ -1,13 +1,18 @@
 export type BillStatus = "paid" | "pending" | "overdue";
 
+export type BillFrequency = "monthly" | "biweekly";
+
 export interface Bill {
   id: string;
   name: string;
   amount: number;
-  dueDay: number; // day of month 1-31
+  dueDay: number; // day of month 1-31 (used for monthly)
   status: BillStatus;
   category?: string;
+  frequency?: BillFrequency; // defaults to monthly
+  anchorDate?: string; // YYYY-MM-DD, one known occurrence (biweekly)
 }
+
 
 export interface VariableExpense {
   id: string;
