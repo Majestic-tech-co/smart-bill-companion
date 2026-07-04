@@ -263,9 +263,13 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium truncate">{b.name}</p>
-                    <p className="text-xs text-muted-foreground">Due day {b.dueDay} · {currencyPrecise(b.amount)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {b.frequency === "biweekly"
+                        ? <>Every 2 weeks · {currencyPrecise(b.amount)} · ≈ {currencyPrecise(monthlyCost(b))}/mo</>
+                        : <>Due day {b.dueDay} · {currencyPrecise(b.amount)}</>}
+                    </p>
                   </div>
-                </div>
+
                 <div className="flex items-center gap-2 shrink-0">
                   <StatusPill status={b.status} onClick={() => cycleStatus(b.id)} />
                   <button
