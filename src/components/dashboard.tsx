@@ -375,35 +375,66 @@ function StatusPill({ status, onClick }: { status: BillStatus; onClick: () => vo
 /* -------------------- Scheduler / Calendar -------------------- */
 function Scheduler({ bills }: { bills: Bill[] }) {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
   const first = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startWeekday = first.getDay();
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+  const dom = today.getDate();
 
   const byDay = new Map<number, Bill[]>();
   bills.forEach((b) => {
-    const arr = byDay.get(b.dueDay) ?? [];
-    arr.push(b);
-    byDay.set(b.dueDay, arr);
+    occurrencesInMonth(b, year, month).forEach((d) => {
+      const arr = byDay.get(d) ?? [];
+      arr.push(b);
+      byDay.set(d, arr);
+    });
   });
 
-  // Payment assistant: order upcoming unpaid by due day
-  const dom = today.getDate();
+  // Payment assistant: order upcoming unpaid by next occurrence from today
   const upcoming = [...bills]
     .filter((b) => b.status !== "paid")
-    .sort((a, b) => {
-      const da = a.dueDay < dom ? a.dueDay + 31 : a.dueDay;
-      const db = b.dueDay < dom ? b.dueDay + 31 : b.dueDay;
-      return da - db;
-    });
+    .map((b) => ({ b, next: nextOccurrence(b, today) }))
+    .sort((a, c) => a.next.getTime() - c.next.getTime());
+
+  const goPrev = () => setCursor(new Date(year, month - 1, 1));
+  const goNext = () => setCursor(new Date(year, month + 1, 1));
+  const goToday = () => setCursor(new Date(today.getFullYear(), today.getMonth(), 1));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4">
       <div className="card-surface p-4 sm:p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold flex items-center gap-2"><CalIcon className="h-4 w-4 text-primary" /> {first.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</h2>
-          <span className="text-xs text-muted-foreground">Today · {dom}</span>
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <h2 className="font-semibold flex items-center gap-2 min-w-0">
+            <CalIcon className="h-4 w-4 text-primary shrink-0" />
+            <span className="truncate">{first.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
+          </h2>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={goPrev}
+              aria-label="Previous month"
+              className="h-8 w-8 rounded-md grid place-items-center bg-secondary/60 hover:bg-secondary transition"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {!isCurrentMonth && (
+              <button
+                onClick={goToday}
+                className="text-xs px-2 h-8 rounded-md bg-secondary/60 hover:bg-secondary transition"
+              >
+                Today
+              </button>
+            )}
+            <button
+              onClick={goNext}
+              aria-label="Next month"
+              className="h-8 w-8 rounded-md grid place-items-center bg-secondary/60 hover:bg-secondary transition"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -417,7 +448,7 @@ function Scheduler({ bills }: { bills: Bill[] }) {
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
             const items = byDay.get(day) ?? [];
-            const isToday = day === dom;
+            const isToday = isCurrentMonth && day === dom;
             const total = items.reduce((s, x) => s + x.amount, 0);
             const hasOverdue = items.some((x) => x.status === "overdue");
             return (
@@ -453,15 +484,15 @@ function Scheduler({ bills }: { bills: Bill[] }) {
           <p className="text-sm text-success flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Everything is paid.</p>
         ) : (
           <ol className="space-y-2">
-            {upcoming.map((b, i) => {
-              const daysAway = b.dueDay - dom;
+            {upcoming.map(({ b, next }, i) => {
+              const daysAway = Math.round((next.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / 86400000);
               const urgency = b.status === "overdue" ? "Overdue" : daysAway <= 0 ? "Due today" : `In ${daysAway}d`;
               return (
                 <li key={b.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg bg-secondary/60 px-3 py-2">
                   <span className="h-7 w-7 shrink-0 rounded-full grid place-items-center text-xs font-bold" style={{ background: "var(--gradient-primary)", color: "var(--primary-foreground)" }}>{i + 1}</span>
                   <div className="min-w-0">
                     <p className="font-medium truncate text-sm">{b.name}</p>
-                    <p className="text-xs text-muted-foreground">{urgency} · {currencyPrecise(b.amount)}</p>
+                    <p className="text-xs text-muted-foreground">{urgency} · {currencyPrecise(b.amount)}{b.frequency === "biweekly" ? " · biweekly" : ""}</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
                 </li>
@@ -473,6 +504,7 @@ function Scheduler({ bills }: { bills: Bill[] }) {
     </div>
   );
 }
+
 
 /* -------------------- Savings Optimizer -------------------- */
 function SavingsOptimizer({
