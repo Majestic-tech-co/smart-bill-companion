@@ -269,6 +269,8 @@ function BillManager({ bills, setBills }: { bills: Bill[]; setBills: (b: Bill[])
                         : <>Due day {b.dueDay} · {currencyPrecise(b.amount)}</>}
                     </p>
                   </div>
+                </div>
+
 
                 <div className="flex items-center gap-2 shrink-0">
                   <StatusPill status={b.status} onClick={() => cycleStatus(b.id)} />
