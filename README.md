@@ -22,19 +22,15 @@ Make the UI responsive for mobile use.
 
 Include a summary card at the top displaying 'Total Monthly Bills', 'Savings Target', and 'Remaining Disposable Income'."
 
-This project was built with [Lovable](https://lovable.dev).
+This project was originally generated with [Lovable](https://lovable.dev) and is now deployed on [Vercel](https://vercel.com). It is no longer developed in the Lovable editor.
 
-## Build with Lovable
+## Deployment
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/6a771d86-c98a-43b9-a4db-7d2dc4c4ac87).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+The app is hosted on Vercel, connected to this GitHub repository. Pushes to `main` deploy to production, so keep `main` in a working state.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
 git clone <this-repository-url>
@@ -42,3 +38,5 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+The build still uses `@lovable.dev/vite-tanstack-config` (see `vite.config.ts`), which bundles the TanStack Start, React, Tailwind and Nitro setup. It is a build dependency only and does not connect the project to Lovable.
