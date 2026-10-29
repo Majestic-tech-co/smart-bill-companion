@@ -22,7 +22,7 @@ Make the UI responsive for mobile use.
 
 Include a summary card at the top displaying 'Total Monthly Bills', 'Savings Target', and 'Remaining Disposable Income'."
 
-This project was originally generated with [Lovable](https://lovable.dev) and is now deployed on [Vercel](https://vercel.com). It is no longer developed in the Lovable editor.
+Built with [TanStack Start](https://tanstack.com/start), React, Tailwind CSS and [Supabase](https://supabase.com), and deployed on [Vercel](https://vercel.com).
 
 ## Deployment
 
@@ -37,7 +37,7 @@ To set up a Supabase project:
 1. Create a project at [supabase.com](https://supabase.com).
 2. Run `supabase/migrations/20261028000000_user_finances.sql` in the SQL editor (or with `supabase db push`).
 3. Under **Authentication → URL Configuration**, set the Site URL to the production domain and add `http://localhost:3000` (or your dev URL) to the redirect URLs, so confirmation emails link back to the app.
-4. Copy the project URL and publishable (anon) key into `.env` (see `.env.example`) for local development, and into the Vercel project's environment variables for deploys.
+4. Copy the project URL (just `https://<project-ref>.supabase.co`, without `/rest/v1`) and publishable (anon) key into `.env` (see `.env.example`) for local development, and into the Vercel project's environment variables for deploys.
 
 ## Development
 
@@ -50,4 +50,4 @@ npm i
 npm run dev
 ```
 
-The build still uses `@lovable.dev/vite-tanstack-config` (see `vite.config.ts`), which bundles the TanStack Start, React, Tailwind and Nitro setup. It is a build dependency only and does not connect the project to Lovable.
+The dev server runs at http://localhost:3000. The Vite config is in `vite.config.ts`; when building on Vercel, Nitro detects the platform and produces Vercel output automatically.
