@@ -10,3 +10,7 @@
 > `vite.config.ts` uses `@lovable.dev/vite-tanstack-config`, which already
 > includes the TanStack Start, React, Tailwind and Nitro plugins. Don't add
 > those plugins manually.
+>
+> Sign-in and data storage use Supabase (`src/lib/supabase.ts`). Schema changes
+> go in a new file under `supabase/migrations/`, and every table holding user
+> data needs row-level security policies scoped to `auth.uid()`.

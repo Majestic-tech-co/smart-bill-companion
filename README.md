@@ -28,6 +28,17 @@ This project was originally generated with [Lovable](https://lovable.dev) and is
 
 The app is hosted on Vercel, connected to this GitHub repository. Pushes to `main` deploy to production, so keep `main` in a working state.
 
+## Accounts and data
+
+Users sign in with email and password through [Supabase Auth](https://supabase.com/docs/guides/auth). Each user's bills, income, expenses and subscriptions are stored in one row of the `user_finances` table, and row-level security limits every user to their own row. The first account to sign in on a browser that used the older local-only version picks up that browser's saved data.
+
+To set up a Supabase project:
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Run `supabase/migrations/20261028000000_user_finances.sql` in the SQL editor (or with `supabase db push`).
+3. Under **Authentication → URL Configuration**, set the Site URL to the production domain and add `http://localhost:3000` (or your dev URL) to the redirect URLs, so confirmation emails link back to the app.
+4. Copy the project URL and publishable (anon) key into `.env` (see `.env.example`) for local development, and into the Vercel project's environment variables for deploys.
+
 ## Development
 
 You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).

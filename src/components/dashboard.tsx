@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, Clock, AlertTriangle, Wallet, Target, TrendingUp, Calendar as CalIcon, Sparkles, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
+import type { Session } from "@supabase/supabase-js";
+import { Plus, Trash2, CheckCircle2, Clock, AlertTriangle, Wallet, Target, TrendingUp, Calendar as CalIcon, Sparkles, ArrowRight, X, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { FullScreenLoader } from "@/components/auth-gate";
+import { useUserFinances, type FinanceData, type SaveState } from "@/hooks/use-user-finances";
+import { getSupabase } from "@/lib/supabase";
 import {
   type Bill,
   type BillFrequency,
@@ -35,16 +38,55 @@ const defaultSubs: Subscription[] = [
   { id: uid(), name: "Gym", amount: 39, analyze: false },
 ];
 
-export function Dashboard() {
-  const [bills, setBills] = useLocalStorage<Bill[]>("sbs.bills", defaultBills);
-  const [income, setIncome] = useLocalStorage<number>("sbs.income", 4200);
-  const [variables, setVariables] = useLocalStorage<VariableExpense[]>("sbs.variables", [
+const defaultFinances: FinanceData = {
+  bills: defaultBills,
+  income: 4200,
+  variables: [
     { id: uid(), name: "Groceries", amount: 420 },
     { id: uid(), name: "Dining", amount: 180 },
     { id: uid(), name: "Transport", amount: 140 },
-  ]);
-  const [subs, setSubs] = useLocalStorage<Subscription[]>("sbs.subs", defaultSubs);
-  const [savingsRatePref, setSavingsRatePref] = useLocalStorage<number>("sbs.rate", 20);
+  ],
+  subs: defaultSubs,
+  savingsRate: 20,
+};
+
+export function Dashboard({ session }: { session: Session }) {
+  const { data, loadError, saveState, update } = useUserFinances(session.user.id, defaultFinances);
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen grid place-items-center px-4">
+        <div className="max-w-sm text-center space-y-4">
+          <p className="text-sm text-destructive">Couldn't load your data: {loadError}</p>
+          <Button variant="outline" onClick={() => getSupabase().auth.signOut()}>
+            Sign out
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  if (!data) return <FullScreenLoader />;
+
+  return <DashboardContent data={data} update={update} saveState={saveState} email={session.user.email} />;
+}
+
+function DashboardContent({
+  data,
+  update,
+  saveState,
+  email,
+}: {
+  data: FinanceData;
+  update: (patch: Partial<FinanceData>) => void;
+  saveState: SaveState;
+  email?: string;
+}) {
+  const { bills, income, variables, subs, savingsRate: savingsRatePref } = data;
+  const setBills = (bills: Bill[]) => update({ bills });
+  const setIncome = (income: number) => update({ income });
+  const setVariables = (variables: VariableExpense[]) => update({ variables });
+  const setSubs = (subs: Subscription[]) => update({ subs });
+  const setSavingsRatePref = (savingsRate: number) => update({ savingsRate });
 
   const now = new Date();
   const curYear = now.getFullYear();
@@ -81,11 +123,18 @@ export function Dashboard() {
             </div>
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold truncate">Smart Bill<span className="text-gradient"> & Savings</span></h1>
-              <p className="text-xs text-muted-foreground truncate">Private. Local-first. Yours.</p>
+              <p className="text-xs text-muted-foreground truncate">{email ?? "Private. Synced. Yours."}</p>
             </div>
           </div>
-          <div className="text-xs text-muted-foreground hidden sm:block">
-            {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="text-xs text-muted-foreground hidden md:block">
+              {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+            </div>
+            <SaveIndicator state={saveState} />
+            <Button variant="ghost" size="sm" onClick={() => getSupabase().auth.signOut()}>
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign out</span>
+            </Button>
           </div>
         </div>
       </header>
@@ -160,10 +209,20 @@ export function Dashboard() {
         </Tabs>
 
         <footer className="text-center text-xs text-muted-foreground py-8">
-          All data stays in your browser via local storage. No sign-in required.
+          Your data is saved to your account and only visible to you.
         </footer>
       </main>
     </div>
+  );
+}
+
+function SaveIndicator({ state }: { state: SaveState }) {
+  if (state === "idle") return null;
+  const label = { saving: "Saving…", saved: "Saved", error: "Not saved" }[state];
+  return (
+    <span className={cn("text-xs", state === "error" ? "text-destructive" : "text-muted-foreground")} role="status">
+      {label}
+    </span>
   );
 }
 
